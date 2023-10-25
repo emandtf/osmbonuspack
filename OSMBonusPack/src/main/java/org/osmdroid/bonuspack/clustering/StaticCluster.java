@@ -1,5 +1,7 @@
 package org.osmdroid.bonuspack.clustering;
 
+import androidx.annotation.Nullable;
+
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.Marker;
@@ -45,6 +47,7 @@ public class StaticCluster {
 	}
 	
 	/** @return the Marker to be displayed for this cluster */
+	@Nullable
 	public Marker getMarker(){
 		return mMarker;
 	}

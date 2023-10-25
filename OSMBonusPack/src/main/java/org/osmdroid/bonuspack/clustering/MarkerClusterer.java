@@ -2,11 +2,8 @@ package org.osmdroid.bonuspack.clustering;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Point;
 import android.view.MotionEvent;
 
-import org.osmdroid.api.IGeoPoint;
-import org.osmdroid.bonuspack.kml.KmlFeature;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
@@ -34,7 +31,6 @@ public abstract class MarkerClusterer extends Overlay {
 	protected static final int FORCE_CLUSTERING = -1;
 	
 	protected ArrayList<Marker> mItems = new ArrayList<Marker>();
-	protected Point mPoint = new Point();
 	protected ArrayList<StaticCluster> mClusters = new ArrayList<StaticCluster>();
 	protected int mLastZoomLevel;
 	protected Bitmap mClusterIcon;
@@ -116,9 +112,13 @@ public abstract class MarkerClusterer extends Overlay {
         	renderer(mClusters, canvas, mapView);
 			mLastZoomLevel = zoomLevel;
 		}
-		
-		for (StaticCluster cluster:mClusters){
-			cluster.getMarker().draw(canvas, mapView.getProjection());
+
+		Marker cMarker;
+		for (final StaticCluster cStaticCluster : mClusters){
+			if ((cStaticCluster == null) || (cStaticCluster.getSize() <= 0)) continue;
+			cMarker = cStaticCluster.getMarker();
+			if (cMarker == null) continue;
+			cMarker.draw(canvas, mapView.getProjection());
         }
 	}
 
@@ -148,51 +148,64 @@ public abstract class MarkerClusterer extends Overlay {
 	}
 
 	@Override public boolean onSingleTapConfirmed(final MotionEvent event, final MapView mapView){
-		for (final StaticCluster cluster : reversedClusters()) {
-			if (cluster.getMarker().onSingleTapConfirmed(event, mapView))
-				return true;
+		Marker cMarker;
+		for (final StaticCluster cStaticCluster : reversedClusters()) {
+			cMarker = cStaticCluster.getMarker();
+			if (cMarker == null) continue;
+			if (cMarker.onSingleTapConfirmed(event, mapView)) return true;
 		}
 		return false;
 	}
 	
 	@Override public boolean onLongPress(final MotionEvent event, final MapView mapView) {
-		for (final StaticCluster cluster : reversedClusters()) {
-			if (cluster.getMarker().onLongPress(event, mapView))
-				return true;
+		Marker cMarker;
+		for (final StaticCluster cStaticCluster : reversedClusters()) {
+			cMarker = cStaticCluster.getMarker();
+			if (cMarker == null) continue;
+			if (cMarker.onLongPress(event, mapView)) return true;
 		}
 		return false;
 	}
 
 	@Override public boolean onTouchEvent(final MotionEvent event, final MapView mapView) {
-		for (StaticCluster cluster : reversedClusters()) {
-			if (cluster.getMarker().onTouchEvent(event, mapView))
-				return true;
+		Marker cMarker;
+		for (StaticCluster cStaticCluster : reversedClusters()) {
+			cMarker = cStaticCluster.getMarker();
+			if (cMarker == null) continue;
+			if (cMarker.onTouchEvent(event, mapView)) return true;
 		}
 		return false;
 	}
 
 	@Override public boolean onDoubleTap(final MotionEvent event, final MapView mapView) {
-		for (final StaticCluster cluster : reversedClusters()) {
-			if (cluster.getMarker().onDoubleTap(event, mapView))
-				return true;
+		Marker cMarker;
+		for (final StaticCluster cStaticCluster : reversedClusters()) {
+			cMarker = cStaticCluster.getMarker();
+			if (cMarker == null) continue;
+			if (cMarker.onDoubleTap(event, mapView)) return true;
 		}
 		return false;
 	}
 
-	@Override public BoundingBox getBounds(){
+	@Override
+	public BoundingBox getBounds() {
 		if (mItems.size() == 0)
 				return null;
 		double minLat = Double.MAX_VALUE;
 		double minLon = Double.MAX_VALUE;
 		double maxLat = -Double.MAX_VALUE;
 		double maxLon = -Double.MAX_VALUE;
-		for (final Marker item : mItems) {
-			final double latitude = item.getPosition().getLatitude();
-			final double longitude = item.getPosition().getLongitude();
-			minLat = Math.min(minLat, latitude);
-			minLon = Math.min(minLon, longitude);
-			maxLat = Math.max(maxLat, latitude);
-			maxLon = Math.max(maxLon, longitude);
+		GeoPoint cGeoPoint;
+		double cLatitude;
+		double cLongitude;
+		for (final Marker cMarker : mItems) {
+			cGeoPoint = cMarker.getPosition();
+			cLatitude = cGeoPoint.getLatitude();
+			cLongitude = cGeoPoint.getLongitude();
+			minLat = Math.min(minLat, cLatitude);
+			minLon = Math.min(minLon, cLongitude);
+			maxLat = Math.max(maxLat, cLatitude);
+			maxLon = Math.max(maxLon, cLongitude);
 		}
 		return new BoundingBox(maxLat, maxLon, minLat, minLon);
 	}

@@ -10,6 +10,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 
+import androidx.annotation.NonNull;
+
 import org.osmdroid.bonuspack.R;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
@@ -92,10 +94,10 @@ public class RadiusMarkerClusterer extends MarkerClusterer {
         return clusters;
     }
 
-    private StaticCluster createCluster(Marker m, MapView mapView) {
-        GeoPoint clusterPosition = m.getPosition();
+    private StaticCluster createCluster(@NonNull final Marker m, @NonNull final MapView mapView) {
+        final GeoPoint clusterPosition = m.getPosition();
 
-        StaticCluster cluster = new StaticCluster(clusterPosition);
+        final StaticCluster cluster = new StaticCluster(clusterPosition);
         cluster.add(m);
 
         mClonedMarkers.remove(m);
@@ -106,11 +108,19 @@ public class RadiusMarkerClusterer extends MarkerClusterer {
         }
         
         Iterator<Marker> it = mClonedMarkers.iterator();
+        Marker cNeighbour;
+        GeoPoint cNeighbourGeoPoint;
+        double cDistance;
         while (it.hasNext()) {
-            Marker neighbour = it.next();
-            double distance = clusterPosition.distanceToAsDouble(neighbour.getPosition());
-            if (distance <= mRadiusInMeters) {
-                cluster.add(neighbour);
+            cNeighbour = it.next();
+            cNeighbourGeoPoint = cNeighbour.getPosition();
+            if (!mapView.getBoundingBox().contains(cNeighbourGeoPoint)) {
+                it.remove();
+                continue;
+            }
+            cDistance = clusterPosition.distanceToAsDouble(cNeighbourGeoPoint);
+            if (cDistance <= mRadiusInMeters) {
+                cluster.add(cNeighbour);
                 it.remove();
             }
         }
@@ -140,7 +150,8 @@ public class RadiusMarkerClusterer extends MarkerClusterer {
     }
 
     @Override public void renderer(ArrayList<StaticCluster> clusters, Canvas canvas, MapView mapView) {
-        for (StaticCluster cluster : clusters) {
+        for (final StaticCluster cluster : clusters) {
+            if (!mapView.getBoundingBox().overlaps(cluster.getBoundingBox(), mapView.getZoomLevelDouble())) continue;
             if (cluster.getSize() == 1) {
                 //cluster has only 1 marker => use it as it is:
                 cluster.setMarker(cluster.getItem(0));
@@ -182,8 +193,11 @@ public class RadiusMarkerClusterer extends MarkerClusterer {
     }
 
     @Override public boolean onSingleTapConfirmed(final MotionEvent event, final MapView mapView){
+        Marker cMarker;
         for (final StaticCluster cluster : reversedClusters()) {
-            if (cluster.getMarker().onSingleTapConfirmed(event, mapView)) {
+            cMarker = cluster.getMarker();
+            if (cMarker == null) continue;
+            if (cMarker.onSingleTapConfirmed(event, mapView)) {
                 if (mAnimated && cluster.getSize() > 1)
                     zoomOnCluster(mapView, cluster);
                 return true;
