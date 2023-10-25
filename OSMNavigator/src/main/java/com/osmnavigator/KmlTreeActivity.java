@@ -109,11 +109,8 @@ public class KmlTreeActivity extends Activity {
 	/* method assigned to the checkbox in the layout */
 	public void onCheckboxClicked(View view) {
 		boolean checked = ((CheckBox)view).isChecked();
-		switch(view.getId()) {
-		case R.id.checkbox_visible:
-			mCurrentKmlFeature.mVisibility = checked;
-			break;
-		}
+		final int cId = view.getId();
+		if (cId == R.id.checkbox_visible) mCurrentKmlFeature.mVisibility = checked;
 	}
 
 	@Override protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -142,43 +139,42 @@ public class KmlTreeActivity extends Activity {
 	@Override public boolean onContextItemSelected(MenuItem item) {
 	    AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 	    KmlFolder currentKmlFolder = (KmlFolder)mCurrentKmlFeature;
-	    switch (item.getItemId()) {
-	        case R.id.kml_item_menu_cut: //=move to the emptied clipboard
-	        	mKmlClipboard.mItems.clear();
-	        	mKmlClipboard.add(currentKmlFolder.mItems.get(info.position));
-	        	currentKmlFolder.removeItem(info.position);
+		final int cId = item.getItemId();
+	    if (cId == R.id.kml_item_menu_cut) { //=move to the emptied clipboard
+			mKmlClipboard.mItems.clear();
+			mKmlClipboard.add(currentKmlFolder.mItems.get(info.position));
+			currentKmlFolder.removeItem(info.position);
+			mListAdapter.notifyDataSetChanged();
+			return true;
+		} else if (cId == R.id.kml_item_menu_copy) {
+			KmlFeature copy = currentKmlFolder.mItems.get(info.position).clone();
+			mKmlClipboard.mItems.clear();
+			mKmlClipboard.mItems.add(copy);
+			return true;
+		} else if (cId == R.id.kml_item_menu_behind) {
+			if (info.position > 0) {
+				KmlFeature kmlItem = currentKmlFolder.removeItem(info.position);
+				currentKmlFolder.mItems.add(info.position - 1, kmlItem);
 				mListAdapter.notifyDataSetChanged();
-	            return true;
-	        case R.id.kml_item_menu_copy:
-	        	KmlFeature copy = currentKmlFolder.mItems.get(info.position).clone();
-	        	mKmlClipboard.mItems.clear();
-	        	mKmlClipboard.mItems.add(copy);
-	            return true;
-	        case R.id.kml_item_menu_behind:
-	        	if (info.position > 0){
-	        		KmlFeature kmlItem = currentKmlFolder.removeItem(info.position);
-	        		currentKmlFolder.mItems.add(info.position-1, kmlItem);
-	        		mListAdapter.notifyDataSetChanged();
-	        	}
-	        	return true;
-	        case R.id.kml_item_menu_front:
-	        	if (info.position < currentKmlFolder.mItems.size()-1){
-	        		KmlFeature kmlItem = currentKmlFolder.removeItem(info.position);
-	        		currentKmlFolder.mItems.add(info.position+1, kmlItem);
-					mListAdapter.notifyDataSetChanged();
-	        	}
-	        	return true;
-	        case R.id.kml_item_menu_show_on_map:
-	        	Intent intent = new Intent();
-	        	//TODO: is it the right way to pass a handle to an object?
-	        	intent.putExtra("KML_FEATURE", currentKmlFolder.mItems.get(info.position));
-				saveCurrentFeature();
-				setResult(RESULT_OK, intent);
-				finish();
-	        	return true;
-	        default:
-	            return super.onContextItemSelected(item);
-	    }
+			}
+			return true;
+		} else if (cId == R.id.kml_item_menu_front) {
+			if (info.position < currentKmlFolder.mItems.size() - 1) {
+				KmlFeature kmlItem = currentKmlFolder.removeItem(info.position);
+				currentKmlFolder.mItems.add(info.position + 1, kmlItem);
+				mListAdapter.notifyDataSetChanged();
+			}
+			return true;
+		} else if (cId == R.id.kml_item_menu_show_on_map) {
+			Intent intent = new Intent();
+			//TODO: is it the right way to pass a handle to an object?
+			intent.putExtra("KML_FEATURE", currentKmlFolder.mItems.get(info.position));
+			saveCurrentFeature();
+			setResult(RESULT_OK, intent);
+			finish();
+			return true;
+		}
+	    return super.onContextItemSelected(item);
 	}
 	
 	//------------ Option Menu implementation
@@ -190,25 +186,24 @@ public class KmlTreeActivity extends Activity {
 	}
 	
 	@Override public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case R.id.kml_option_menu_paste: 
-				if (mCurrentKmlFeature instanceof KmlFolder){
-					KmlFolder currentKmlFolder = (KmlFolder)mCurrentKmlFeature;
-					for (KmlFeature kmlItem:mKmlClipboard.mItems){
-						currentKmlFolder.add(kmlItem.clone());
-					}
-					mListAdapter.notifyDataSetChanged();
+		final int cId = item.getItemId();
+		if (cId == R.id.kml_option_menu_paste) {
+			if (mCurrentKmlFeature instanceof KmlFolder){
+				KmlFolder currentKmlFolder = (KmlFolder)mCurrentKmlFeature;
+				for (KmlFeature kmlItem:mKmlClipboard.mItems){
+					currentKmlFolder.add(kmlItem.clone());
 				}
-				return true;
-			case R.id.kml_option_menu_new: 
-				if (mCurrentKmlFeature instanceof KmlFolder){
-					KmlFolder currentKmlFolder = (KmlFolder)mCurrentKmlFeature;
-					currentKmlFolder.add(new KmlFolder());
-					mListAdapter.notifyDataSetChanged();
-				}
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
+				mListAdapter.notifyDataSetChanged();
+			}
+			return true;
+		} else if (cId == R.id.kml_option_menu_new) {
+			if (mCurrentKmlFeature instanceof KmlFolder){
+				KmlFolder currentKmlFolder = (KmlFolder)mCurrentKmlFeature;
+				currentKmlFolder.add(new KmlFolder());
+				mListAdapter.notifyDataSetChanged();
+			}
+			return true;
 		}
+		return super.onOptionsItemSelected(item);
 	}
 }

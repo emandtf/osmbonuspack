@@ -7,29 +7,21 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.caverock.androidsvg.BuildConfig;
 
 import org.osmdroid.bonuspack.clustering.RadiusMarkerClusterer;
 import org.osmdroid.bonuspack.sharing.Friend;
 import org.osmdroid.bonuspack.sharing.Friends;
-import org.osmdroid.bonuspack.utils.BonusPackHelper;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 
 /**
@@ -129,15 +121,15 @@ public class FriendsManager {
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
+        final int cId = item.getItemId();
         Intent myIntent;
-        switch (item.getItemId()) {
-            case R.id.menu_sharing:
-                if (!mIsSharing) {
-                    myIntent = new Intent(mActivity, StartSharingActivity.class);
-                    mActivity.startActivityForResult(myIntent, START_SHARING_REQUEST);
-                } else {
-                    new StopSharingTask().execute();
-                }
+        if (cId == R.id.menu_sharing) {
+            if (!mIsSharing) {
+                myIntent = new Intent(mActivity, StartSharingActivity.class);
+                mActivity.startActivityForResult(myIntent, START_SHARING_REQUEST);
+            } else {
+                new StopSharingTask().execute();
+            }
         }
         return true;
     }

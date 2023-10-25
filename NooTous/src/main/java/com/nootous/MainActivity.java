@@ -63,25 +63,25 @@ public class MainActivity extends AppCompatActivity {
     protected static String eventManagementUrl = "https://comob.org/NooTous/partner.html";
 
     @Override public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                startActivityForResult(new Intent(this, SettingsActivity.class), 100);
-                return true;
-            case R.id.action_event_management:
-                String groupName = getSharedPreferences("NOOTOUS", Context.MODE_PRIVATE).getString("GROUP_NAME", "#");
-                String groupNameEncoded = null;
-                try {
-                    groupNameEncoded = URLEncoder.encode(groupName, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                String url = eventManagementUrl + "?group_id=" + groupNameEncoded;
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(browserIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        final int cId = item.getItemId();
+        if (cId == R.id.action_settings) {
+            startActivityForResult(new Intent(this, SettingsActivity.class), 100);
+            return true;
         }
+        else if (cId == R.id.action_event_management) {
+            String groupName = getSharedPreferences("NOOTOUS", Context.MODE_PRIVATE).getString("GROUP_NAME", "#");
+            String groupNameEncoded = null;
+            try {
+                groupNameEncoded = URLEncoder.encode(groupName, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            String url = eventManagementUrl + "?group_id=" + groupNameEncoded;
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(browserIntent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent intent) {

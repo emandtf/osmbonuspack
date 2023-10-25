@@ -49,6 +49,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.caverock.androidsvg.BuildConfig;
+
 import org.mapsforge.map.rendertheme.ExternalRenderTheme;
 import org.mapsforge.map.rendertheme.XmlRenderTheme;
 import org.osmdroid.api.IMapController;
@@ -62,7 +65,6 @@ import org.osmdroid.bonuspack.kml.KmlTrack;
 import org.osmdroid.bonuspack.kml.LineStyle;
 import org.osmdroid.bonuspack.kml.Style;
 import org.osmdroid.bonuspack.location.GeoNamesPOIProvider;
-//import org.osmdroid.bonuspack.location.GeocoderGraphHopper;
 import org.osmdroid.bonuspack.location.GeocoderNominatim;
 import org.osmdroid.bonuspack.location.OverpassAPIProvider;
 import org.osmdroid.bonuspack.location.POI;
@@ -90,10 +92,8 @@ import org.osmdroid.tileprovider.util.ManifestUtil;
 import org.osmdroid.tileprovider.util.SimpleRegisterReceiver;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
-import org.osmdroid.util.MapTileIndex;
 import org.osmdroid.util.NetworkLocationIgnorer;
 import org.osmdroid.util.TileSystem;
-import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.MapEventsOverlay;
@@ -116,14 +116,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1414,31 +1411,30 @@ public class MapActivity extends Activity implements MapEventsReceiver, Location
 	}
 
 	@Override public boolean onContextItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.menu_departure:
+		final int cId = item.getItemId();
+		if (cId == R.id.menu_departure) {
 			startPoint = new GeoPoint(mClickedGeoPoint);
 			markerStart = updateItineraryMarker(markerStart, startPoint, START_INDEX,
 				R.string.departure, R.drawable.marker_departure, -1, null);
 			getRoadAsync();
 			return true;
-		case R.id.menu_destination:
+		} else if (cId == R.id.menu_destination) {
 			destinationPoint = new GeoPoint(mClickedGeoPoint);
 			markerDestination = updateItineraryMarker(markerDestination, destinationPoint, DEST_INDEX,
 				R.string.destination, R.drawable.marker_destination, -1, null);
 			getRoadAsync();
 			return true;
-		case R.id.menu_viapoint:
+		} else if (cId == R.id.menu_viapoint) {
 			GeoPoint viaPoint = new GeoPoint(mClickedGeoPoint);
 			addViaPoint(viaPoint);
 			getRoadAsync();
 			return true;
-		case R.id.menu_kmlpoint:
+		} else if (cId == R.id.menu_kmlpoint) {
 			GeoPoint kmlPoint = new GeoPoint(mClickedGeoPoint);
 			addKmlPoint(kmlPoint);
 			return true;
-		default:
-			return super.onContextItemSelected(item);
 		}
+		return super.onContextItemSelected(item);
 	}
 
 	//------------ Option Menu implementation
@@ -1569,32 +1565,31 @@ public class MapActivity extends Activity implements MapEventsReceiver, Location
 	}
 
 	@Override public boolean onOptionsItemSelected(MenuItem item) {
+		final int cId = item.getItemId();
 		Intent myIntent;
-		switch (item.getItemId()) {
-			case R.id.menu_sharing:
-				return mFriendsManager.onOptionsItemSelected(item);
-		case R.id.menu_itinerary:
+		if (cId == R.id.menu_sharing) return mFriendsManager.onOptionsItemSelected(item);
+		else if (cId == R.id.menu_itinerary) {
 			myIntent = new Intent(this, RouteActivity.class);
 			int currentNodeId = getIndexOfBubbledMarker(mRoadNodeMarkers.getItems());
 			myIntent.putExtra("SELECTED_ROAD", mSelectedRoad);
 			myIntent.putExtra("NODE_ID", currentNodeId);
 			startActivityForResult(myIntent, ROUTE_REQUEST);
 			return true;
-		case R.id.menu_pois:
+		} else if (cId == R.id.menu_pois) {
 			myIntent = new Intent(this, POIActivity.class);
 			myIntent.putExtra("ID", getIndexOfBubbledMarker(mPoiMarkers.getItems()));
 			startActivityForResult(myIntent, POIS_REQUEST);
 			return true;
-		case R.id.menu_kml_url:
+		} else if (cId == R.id.menu_kml_url) {
 			openUrlDialog();
 			return true;
-		case R.id.menu_open_file:
+		} else if (cId == R.id.menu_open_file) {
 			openLoadFileDialog();
 			return true;
-		case R.id.menu_overpass_api:
+		} else if (cId == R.id.menu_overpass_api) {
 			openOverpassAPIWizard();
 			return true;
-		case R.id.menu_kml_record_track:
+		} else if (cId == R.id.menu_kml_record_track) {
 			mIsRecordingTrack = !mIsRecordingTrack;
 			mFriendsManager.setTracksRecording(mIsRecordingTrack);
 			if (mIsRecordingTrack)
@@ -1602,91 +1597,89 @@ public class MapActivity extends Activity implements MapEventsReceiver, Location
 			else
 				item.setTitle(R.string.menu_kml_record_tracks);
 			return true;
-		case R.id.menu_kml_get_overlays:
+		} else if (cId == R.id.menu_kml_get_overlays) {
 			insertOverlaysInKml();
 			updateUIWithKml();
 			return true;
-		case R.id.menu_kml_tree:
+		} else if (cId == R.id.menu_kml_tree) {
 			myIntent = new Intent(this, KmlTreeActivity.class);
 			//myIntent.putExtra("KML", mKmlDocument.kmlRoot);
 			mKmlStack.push(mKmlDocument.mKmlRoot);
 			startActivityForResult(myIntent, KmlTreeActivity.KML_TREE_REQUEST);
 			return true;
-		case R.id.menu_kml_styles:
+		} else if (cId == R.id.menu_kml_styles) {
 			myIntent = new Intent(this, KmlStylesActivity.class);
 			startActivityForResult(myIntent, KmlStylesActivity.KML_STYLES_REQUEST);
 			return true;
-		case R.id.menu_save_file:
+		} else if (cId == R.id.menu_save_file) {
 			openSaveFileDialog();
 			return true;
-		case R.id.menu_kml_clear:
+		} else if (cId == R.id.menu_kml_clear) {
 			mKmlDocument = new KmlDocument();
 			updateUIWithKml();
 			return true;
-		case R.id.menu_route_osrm:
+		} else if (cId == R.id.menu_route_osrm) {
 			mWhichRouteProvider = OSRM;
 			item.setChecked(true);
 			getRoadAsync();
 			return true;
-		case R.id.menu_route_graphhopper_fastest:
+		} else if (cId == R.id.menu_route_graphhopper_fastest) {
 			mWhichRouteProvider = GRAPHHOPPER_FASTEST;
 			item.setChecked(true);
 			getRoadAsync();
 			return true;
-		case R.id.menu_route_graphhopper_bicycle:
+		} else if (cId == R.id.menu_route_graphhopper_bicycle) {
 			mWhichRouteProvider = GRAPHHOPPER_BICYCLE;
 			item.setChecked(true);
 			getRoadAsync();
 			return true;
-		case R.id.menu_route_graphhopper_pedestrian:
+		} else if (cId == R.id.menu_route_graphhopper_pedestrian) {
 			mWhichRouteProvider = GRAPHHOPPER_PEDESTRIAN;
 			item.setChecked(true);
 			getRoadAsync();
 			return true;
-		case R.id.menu_route_google:
+		} else if (cId == R.id.menu_route_google) {
 			mWhichRouteProvider = GOOGLE_FASTEST;
 			item.setChecked(true);
 			getRoadAsync();
 			return true;
-		case R.id.menu_tile_mapnik:
+		} else if (cId == R.id.menu_tile_mapnik) {
 			setStdTileProvider();
 			map.setTileSource(TileSourceFactory.MAPNIK);
 			map.getOverlayManager().getTilesOverlay().setColorFilter(null);
 			mNightMode = false;
 			item.setChecked(true);
 			return true;
-		case R.id.menu_tile_mapnik_by_night:
+		} else if (cId == R.id.menu_tile_mapnik_by_night) {
 			setStdTileProvider();
 			map.setTileSource(TileSourceFactory.MAPNIK);
 			map.getOverlayManager().getTilesOverlay().setColorFilter(TilesOverlay.INVERT_COLORS);
 			mNightMode = true;
 			item.setChecked(true);
 			return true;
-		case R.id.menu_tile_mapbox_satellite:
+		} else if (cId == R.id.menu_tile_mapbox_satellite) {
 			setStdTileProvider();
 			map.setTileSource(MAPBOXSATELLITELABELLED);
 			map.getOverlayManager().getTilesOverlay().setColorFilter(null);
 			item.setChecked(true);
 			return true;
-		case R.id.menu_tile_mapsforge:
+		} else if (cId == R.id.menu_tile_mapsforge) {
 			boolean result = setMapsForgeTileProvider();
 			if (result)
 				item.setChecked(true);
 			else
 				Toast.makeText(this, "No MapsForge map found", Toast.LENGTH_SHORT).show();
 			return true;
-		case R.id.menu_download_view_area:{
+		} else if (cId == R.id.menu_download_view_area) {
 			CacheManager cacheManager = new CacheManager(map);
 			int zoomMin = map.getZoomLevel();
 			int zoomMax = map.getZoomLevel()+4;
 			cacheManager.downloadAreaAsync(this, map.getBoundingBox(), zoomMin, zoomMax);
 			return true;
-			}
-		case R.id.menu_clear_view_area:{
+		} else if (cId == R.id.menu_clear_view_area) {
 			new CacheClearer().execute();
 			return true;
-			}
-		case R.id.menu_cache_usage:{
+		} else if (cId == R.id.menu_cache_usage) {
 			CacheManager cacheManager = new CacheManager(map);
 			long cacheUsage = cacheManager.currentCacheUsage()/(1024*1024);
 			long cacheCapacity = cacheManager.cacheCapacity()/(1024*1024);
@@ -1694,10 +1687,8 @@ public class MapActivity extends Activity implements MapEventsReceiver, Location
 			String message = "Cache usage:\n"+cacheUsage+" Mo / "+cacheCapacity+" Mo = "+(int)percent + "%";
 			Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 			return true;
-			}
-		default:
-			return super.onOptionsItemSelected(item);
 		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	//------------ LocationListener implementation

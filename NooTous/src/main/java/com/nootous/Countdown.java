@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.multidex.BuildConfig;
 import androidx.navigation.fragment.NavHostFragment;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
